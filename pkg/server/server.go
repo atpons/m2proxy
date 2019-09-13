@@ -4,13 +4,12 @@ import (
 	"net"
 	"time"
 
-	"github.com/atpons/m2proxy/pkg/util"
-
 	"github.com/atpons/m2proxy/pkg/handler"
 	"github.com/atpons/m2proxy/pkg/packet"
 	"github.com/atpons/m2proxy/pkg/request"
 	"github.com/atpons/m2proxy/pkg/response"
 	"github.com/atpons/m2proxy/pkg/storage"
+	"github.com/atpons/m2proxy/pkg/util"
 )
 
 type Server struct {

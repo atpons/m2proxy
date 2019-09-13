@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/atpons/m2proxy/pkg/util"
-
 	_ "github.com/mattn/go-sqlite3"
 	"gopkg.in/gorp.v1"
 )

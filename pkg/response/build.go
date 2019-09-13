@@ -3,9 +3,8 @@ package response
 import (
 	"encoding/binary"
 
-	"github.com/atpons/m2proxy/pkg/request"
-
 	"github.com/atpons/m2proxy/pkg/packet"
+	"github.com/atpons/m2proxy/pkg/request"
 )
 
 type Response struct {

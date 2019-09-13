@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/atpons/m2proxy/pkg/util"
-
 	"github.com/atpons/m2proxy/pkg/packet"
+	"github.com/atpons/m2proxy/pkg/util"
 )
 
 type Request struct {
