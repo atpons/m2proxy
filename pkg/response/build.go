@@ -54,8 +54,5 @@ func (r *Response) ToBytes() []byte {
 	binary.BigEndian.PutUint32(header[12:16], r.Opaque)
 	binary.BigEndian.PutUint32(header[16:20], r.Cas)
 	header = append(header, r.Body...)
-	//for _, h := range header {
-	//	fmt.Printf("%x ", h)
-	//}
 	return header
 }
