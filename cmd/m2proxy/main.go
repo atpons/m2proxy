@@ -20,7 +20,7 @@ func init() {
 }
 
 func main() {
-	if util.Debug > 0 {
+	if util.Debug > 0 || os.Getenv("PPROF") == "1" {
 		go func() {
 			log.Println(http.ListenAndServe("localhost:6060", nil))
 		}()
