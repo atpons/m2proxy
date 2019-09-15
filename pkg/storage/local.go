@@ -29,7 +29,7 @@ func NewLocalStorage(fileName string) Storage {
 		panic(err)
 	}
 
-	if util.Debug > 0 {
+	if util.Debug > 1 {
 		dbMap.TraceOn("[gorp]", log.New(os.Stdout, "myapp:", log.Lmicroseconds))
 	}
 

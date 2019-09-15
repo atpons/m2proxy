@@ -1,8 +1,10 @@
 package server
 
 import (
+	"fmt"
+	"io"
 	"net"
-	"time"
+	"os"
 
 	"github.com/atpons/m2proxy/pkg/handler"
 	"github.com/atpons/m2proxy/pkg/packet"
@@ -47,18 +49,30 @@ func (s *Server) handleListener(l *net.TCPListener) error {
 
 func (s *Server) handleRequest(conn net.Conn) {
 	defer conn.Close()
+
 	for {
-		conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+		header := make([]byte, 24)
+		buffer := make([]byte, 1048576+20)
 
-		buf := make([]byte, 1024)
+		length, _ := io.ReadAtLeast(conn, header, 24)
 
-		_, err := conn.Read(buf)
-
-		if err != nil {
-			return
+		if util.Debug > 0 {
+			fmt.Fprintf(os.Stderr, "Read Header %d bytes\n", length)
 		}
 
-		req, _ := request.ParseRequest(buf)
+		req, _ := request.ParseHeader(header)
+
+		if req.Magic != packet.Request {
+			fmt.Fprintf(os.Stderr, "Not Memacached Pakcet, Writing Nothing\n")
+			conn.Write([]byte{})
+			break
+		}
+
+		bodyLen, _ := io.ReadFull(conn, buffer[:req.TotalBodyLength])
+		if util.Debug > 0 {
+			fmt.Fprintf(os.Stderr, "Read Body %d bytes\n", bodyLen)
+		}
+		req.Body = buffer
 
 		if util.Debug > 0 {
 			req.Print()
@@ -89,7 +103,7 @@ func (s *Server) handleRequest(conn net.Conn) {
 
 		if cmd.Quietly() || (cmd.Quietly() && res.Status == packet.StatusKeyNotFound) {
 		} else {
-			_, err = conn.Write(res.ToBytes())
+			_, _ = conn.Write(res.ToBytes())
 		}
 
 		if (req.Opcode == packet.CmdQuit) || (req.Opcode == packet.CmdQuitQ) {

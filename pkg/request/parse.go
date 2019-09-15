@@ -22,7 +22,7 @@ type Request struct {
 	Body            []byte
 }
 
-func ParseRequest(req []byte) (*Request, error) {
+func ParseHeader(req []byte) (*Request, error) {
 	request := Request{}
 	request.Magic = req[0]
 	request.Opcode = packet.Cmd(req[1])
@@ -33,7 +33,6 @@ func ParseRequest(req []byte) (*Request, error) {
 	request.TotalBodyLength = binary.BigEndian.Uint32(req[8:12])
 	request.Opaque = binary.BigEndian.Uint32(req[12:16])
 	request.Cas = binary.BigEndian.Uint32(req[16:24])
-	request.Body = req[24:]
 	return &request, nil
 }
 
