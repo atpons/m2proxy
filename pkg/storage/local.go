@@ -47,7 +47,6 @@ func (l *LocalStorage) Get(k []byte) (*Record, error) {
 	if r, ok := record.(*Record); !ok {
 		return nil, ErrKeyNotFound
 	} else {
-		fmt.Fprintf(os.Stderr, "local storage: got value: %v\n", r.Value)
 		return r, nil
 	}
 }
