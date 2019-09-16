@@ -49,12 +49,16 @@ func (s *Server) handleListener(l *net.TCPListener) error {
 
 func (s *Server) handleRequest(conn net.Conn) {
 	defer conn.Close()
-
+READ:
 	for {
+		if util.Debug > 0 {
+			fmt.Fprintf(os.Stderr, "[*] Start Read\n")
+		}
+
 		header := make([]byte, 24)
 		buffer := make([]byte, 1048576+20)
 
-		length, _ := io.ReadAtLeast(conn, header, 24)
+		length, _ := io.ReadFull(conn, header)
 
 		if util.Debug > 0 {
 			fmt.Fprintf(os.Stderr, "Read Header %d bytes\n", length)
@@ -63,9 +67,8 @@ func (s *Server) handleRequest(conn net.Conn) {
 		req, _ := request.ParseHeader(header)
 
 		if req.Magic != packet.Request {
-			fmt.Fprintf(os.Stderr, "Not Memacached Pakcet, Writing Nothing\n")
-			conn.Write([]byte{})
-			break
+			fmt.Fprintf(os.Stderr, "Not Memacached Pakcet, Skip this packet...\n")
+			break READ
 		}
 
 		bodyLen, _ := io.ReadFull(conn, buffer[:req.TotalBodyLength])
@@ -89,11 +92,13 @@ func (s *Server) handleRequest(conn net.Conn) {
 		case packet.CmdDelete, packet.CmdDeleteQ:
 			res = handler.Delete(*s.Storage, *req)
 		case packet.CmdIncrement, packet.CmdIncrementQ, packet.CmdDecrement, packet.CmdDecrementQ:
-			res = handler.Calc(*s.Storage, *req)
+			res = handler.IncrDecr(*s.Storage, *req)
 		case packet.CmdNoop:
 			res = handler.Noop(*req)
 		case packet.CmdQuit:
 			res = handler.Quit(*req)
+		case packet.CmdFlush, packet.CmdFlushQ:
+			res = handler.Flush(*s.Storage, *req)
 		case packet.CmdQuitQ:
 		default:
 			res = *response.BuildResponse(*req, req.Opcode, packet.StatusUnknownCommand, []byte{}, []byte{})
@@ -103,6 +108,9 @@ func (s *Server) handleRequest(conn net.Conn) {
 
 		if cmd.Quietly() || (cmd.Quietly() && res.Status == packet.StatusKeyNotFound) {
 		} else {
+			if util.Debug > 0 {
+				fmt.Fprintf(os.Stderr, "Writing Response: %s\n", res.Opcode.String())
+			}
 			_, _ = conn.Write(res.ToBytes())
 		}
 

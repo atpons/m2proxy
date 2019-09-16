@@ -39,13 +39,13 @@ func Get(s storage.Storage, req request.Request) response.Response {
 		return *response.BuildResponse(req, req.Opcode, packet.StatusInternalError, []byte{}, []byte{})
 	}
 
-	respGet := ResponseGet{Flags: 0x00000001, Value: value.Value}
+	respGet := ResponseGet{Flags: value.Flag, Value: value.Value}
 
 	var res *response.Response
 	if req.Opcode == packet.CmdGetQ {
 		res = response.BuildResponse(req, req.Opcode, packet.StatusNoError, []byte{}, respGet.toBytes())
 	} else {
-		res = response.BuildResponse(req, req.Opcode, packet.StatusNoError, getBody.Key, respGet.toBytes())
+		res = response.BuildResponse(req, req.Opcode, packet.StatusNoError, []byte{}, respGet.toBytes())
 	}
 
 	res.Cas = value.CAS

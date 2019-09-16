@@ -4,6 +4,7 @@ package storage
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -46,23 +47,28 @@ func (l *LocalStorage) Get(k []byte) (*Record, error) {
 	if r, ok := record.(*Record); !ok {
 		return nil, ErrKeyNotFound
 	} else {
+		fmt.Fprintf(os.Stderr, "local storage: got value: %v\n", r.Value)
 		return r, nil
 	}
 }
 
-func (l *LocalStorage) Set(r Record) error {
+func (l *LocalStorage) Set(r Record) (uint64, error) {
 	record := Record{}
 	err := l.Store.SelectOne(&record, "select * from Record where Key=?", r.Key)
-	if err != nil {
-		return l.Store.Insert(&r)
+
+	// If request has CAS, check CAS with selected record
+	if (r.CAS > 0) && (record.CAS != r.CAS) {
+		return 0, ErrKeyExists
 	}
 
-	if record.CAS != r.CAS || ((record.CAS == 0) && (r.CAS != 0)) {
-		return ErrKeyExists
-	} else {
-		_, err := l.Store.Update(&r)
-		return err
+	r.CAS = getCas(r.CAS)
+
+	if err != nil { // No Record and to insert
+		return r.CAS, l.Store.Insert(&r)
 	}
+
+	_, err = l.Store.Update(&r)
+	return r.CAS, err
 }
 
 func (l *LocalStorage) Delete(k []byte) error {
@@ -76,5 +82,16 @@ func (l *LocalStorage) Delete(k []byte) error {
 		return ErrStoreInternal
 	}
 
+	return nil
+}
+
+func (l *LocalStorage) Flush() error {
+	err := l.Store.TruncateTables()
+	if err != nil {
+		if util.Debug > 1 {
+			fmt.Fprintf(os.Stderr, "localstorage: error truncate tables: %v\n", err)
+		}
+		return ErrStoreInternal
+	}
 	return nil
 }

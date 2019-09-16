@@ -27,7 +27,7 @@ func (r *RequestSet) Print() {
 func Set(s storage.Storage, req request.Request) response.Response {
 	setBody := ExtractSetBody(req)
 
-	if util.Debug > 0 {
+	if util.Debug > 2 {
 		setBody.Print()
 	}
 
@@ -41,27 +41,21 @@ func Set(s storage.Storage, req request.Request) response.Response {
 		return *response.BuildResponse(req, req.Opcode, packet.StatusKeyExists, []byte{}, []byte("Data Exists for Key."))
 	}
 
-	var cas uint32
-	if prev != nil {
-		cas = prev.CAS
-	} else {
-		cas = 0
-	}
-
 	rec := storage.Record{
 		Key:   string(setBody.Key),
 		Value: setBody.Value,
 		Flag:  setBody.Flags,
 		Exp:   setBody.Expiration,
-		CAS:   cas,
+		CAS:   req.Cas,
 	}
 
-	err = s.Set(rec)
+	cas, err := s.Set(rec)
 
 	if err != nil {
 		return *response.BuildResponse(req, req.Opcode, packet.StatusInternalError, []byte{}, []byte{})
 	}
 	res := response.BuildResponse(req, req.Opcode, packet.StatusNoError, []byte{}, []byte{})
+	res.Cas = cas
 
 	return *res
 }

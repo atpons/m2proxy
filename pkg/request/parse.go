@@ -18,7 +18,7 @@ type Request struct {
 	VbucketId       uint16
 	TotalBodyLength uint32
 	Opaque          uint32
-	Cas             uint32
+	Cas             uint64
 	Body            []byte
 }
 
@@ -32,7 +32,7 @@ func ParseHeader(req []byte) (*Request, error) {
 	request.VbucketId = binary.BigEndian.Uint16(req[6:8])
 	request.TotalBodyLength = binary.BigEndian.Uint32(req[8:12])
 	request.Opaque = binary.BigEndian.Uint32(req[12:16])
-	request.Cas = binary.BigEndian.Uint32(req[16:24])
+	request.Cas = binary.BigEndian.Uint64(req[16:24])
 	return &request, nil
 }
 

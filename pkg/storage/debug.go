@@ -19,10 +19,14 @@ func (d *DebugStorage) Get(k []byte) (*Record, error) {
 	return &dummy, nil
 }
 
-func (d *DebugStorage) Set(r Record) error {
-	return nil
+func (d *DebugStorage) Set(r Record) (uint64, error) {
+	return 0, nil
 }
 
 func (d *DebugStorage) Delete(k []byte) error {
+	return nil
+}
+
+func (d *DebugStorage) Flush() error {
 	return nil
 }

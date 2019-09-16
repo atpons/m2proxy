@@ -16,7 +16,7 @@ type Response struct {
 	Status          packet.Status
 	TotalBodyLength uint32
 	Opaque          uint32
-	Cas             uint32
+	Cas             uint64
 	Body            []byte
 }
 
@@ -52,7 +52,7 @@ func (r *Response) ToBytes() []byte {
 	binary.BigEndian.PutUint16(header[6:8], uint16(r.Status))
 	binary.BigEndian.PutUint32(header[8:12], r.TotalBodyLength)
 	binary.BigEndian.PutUint32(header[12:16], r.Opaque)
-	binary.BigEndian.PutUint32(header[16:20], r.Cas)
+	binary.BigEndian.PutUint64(header[16:24], r.Cas)
 	header = append(header, r.Body...)
 	return header
 }

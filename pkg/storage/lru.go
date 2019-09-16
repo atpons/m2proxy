@@ -26,14 +26,19 @@ func (l *LruStorage) Get(k []byte) (*Record, error) {
 	return nil, ErrStoreInternal
 }
 
-func (l *LruStorage) Set(r Record) error {
+func (l *LruStorage) Set(r Record) (uint64, error) {
 	evicted := l.Store.Add(string(r.Key), r)
 	if evicted {
-		return ErrKeyExists
+		return 0, ErrKeyExists
 	}
-	return nil
+	return 0, nil
 }
 
 func (l *LruStorage) Delete(k []byte) error {
+	return nil
+}
+
+func (l *LruStorage) Flush() error {
+	l.Store.Purge()
 	return nil
 }
